@@ -1,2 +1,4 @@
 github.com/V1N322/httpUtils v0.0.0-20240806201200-11a45650789e h1:0XhRbuuJECWUQ68aQmtgCuddIDOmP+DeGSl2z6U85jw=
 github.com/V1N322/httpUtils v0.0.0-20240806201200-11a45650789e/go.mod h1:fkBIZCNYU1Z5Jkfzf1NTX9tco/EBrmVSjHslBkZ5RjU=
+github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
