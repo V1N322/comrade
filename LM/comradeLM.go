@@ -1,15 +1,10 @@
 package comradelm
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 
-	"io"
+	lib "comrade/lib"
 
-	"bytes"
-
-	httpClient "github.com/V1N322/httpUtils/httpConstant"
 )
 
 
@@ -20,18 +15,6 @@ type ComradeLM struct {
 
 	URL             string
 	AutoContext     bool
-}
-
-type Request struct {
-	ComradeAIToken string                   `json:"comradeAIToken"`
-	Text           string                   `json:"text"`
-	AgentAddress   string                   `json:"agentAddress"`
-	RequestAgentConfig map[string]interface{} `json:"requestAgentConfig"`
-}
-
-type ResponseData struct {
-	Result  string      `json:"result"`
-	Content interface{} `json:"content"`
 }
 
 
@@ -51,14 +34,18 @@ func getStringContext(context []map[string]interface{}) string {
 	return result
 }
 
-func newPostRequest(URL string, jsonData []byte) (*http.Request, error) {
-	url := fmt.Sprintf("%s/get_agent_response/", URL)
-	req, err := http.NewRequest(httpClient.POST, url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %v", err)
-	}
-	return req, nil
+func (comrade *ComradeLM) ClearContext() {
+	comrade.Context = []map[string]interface{}{}
 }
+
+func (comrade *ComradeLM) GetContext() []map[string]interface{} {
+	return comrade.Context
+}
+
+func (comrade *ComradeLM) LoadContext(context []map[string]interface{}) {
+	comrade.Context = context
+}
+
 
 
 func (comrade *ComradeLM) SendMessage(message string) (string, error) {
@@ -69,45 +56,20 @@ func (comrade *ComradeLM) SendMessage(message string) (string, error) {
 
 	context := getStringContext(comrade.Context)
 
-	request := Request{
+	request := lib.Request{
 		ComradeAIToken: comrade.Token,
 		Text:           context,
 		AgentAddress:   comrade.Agent,
 		RequestAgentConfig: map[string]interface{}{},
 	}
 
-	jsonData, err := json.Marshal(request)
+
+	result, err := lib.GetComradeAIResponse(request, comrade.URL)
 	if err != nil {
-		return "Something went wrong", err
+		return "", fmt.Errorf("error getting response: %v", err)
 	}
 
-	req, err := newPostRequest(comrade.URL, jsonData)
-	if err != nil {
-		return "", fmt.Errorf("error creating request: %v", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	client := httpClient.GetHTTPClient()
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("error sending request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("invalid response status code: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("error reading response body: %v", err)
-	}
-	var result ResponseData
-	if err := json.Unmarshal(body, &result); err != nil {
-		return "", fmt.Errorf("error decoding response: %v", err)
-	}
-
+	
 	if result.Result == "success" {
 		content, ok := result.Content.(map[string]interface{})
 		if !ok {
@@ -127,11 +89,10 @@ func (comrade *ComradeLM) SendMessage(message string) (string, error) {
 		}
 
 		return responseText, nil
+
 	} else {
 		return fmt.Sprintf("%v", result.Content), nil
 	}
-
-	
 
 	return "", nil
 }
