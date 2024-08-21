@@ -19,6 +19,7 @@ type ComradeLM struct {
 	Context             []map[string]interface{}
 
 	URL             string
+	AutoContext     bool
 }
 
 type Request struct {
@@ -42,9 +43,9 @@ func (comrade *ComradeLM) AddMessage(message string, role string) {
 	comrade.Context = append(comrade.Context, map[string]interface{}{"role": role, "content": message})
 }
 
-func (comrade *ComradeLM) getStringContext() string {
+func getStringContext(context []map[string]interface{}) string {
 	var result string
-	for _, message := range comrade.Context {
+	for _, message := range context {
 		result += fmt.Sprintf("%s: %s\n", message["role"], message["content"])
 	}
 	return result
@@ -61,9 +62,12 @@ func newPostRequest(URL string, jsonData []byte) (*http.Request, error) {
 
 
 func (comrade *ComradeLM) SendMessage(message string) (string, error) {
-	comrade.AddMessage(message, "user")
+	
+	if comrade.AutoContext {
+		comrade.AddMessage(message, "user")
+	}
 
-	context := comrade.getStringContext()
+	context := getStringContext(comrade.Context)
 
 	request := Request{
 		ComradeAIToken: comrade.Token,
@@ -118,7 +122,9 @@ func (comrade *ComradeLM) SendMessage(message string) (string, error) {
 			return "", fmt.Errorf("invalid data structure")
 		}
 
-		comrade.AddMessage(responseText, "assistant")
+		if comrade.AutoContext {
+			comrade.AddMessage(responseText, "assistant")
+		}
 
 		return responseText, nil
 	} else {
