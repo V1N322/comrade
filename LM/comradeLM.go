@@ -18,8 +18,8 @@ type ComradeLM struct {
 }
 
 
-func NewComradeLM(userURL string, token string, agent string) *ComradeLM {
-	return &ComradeLM{URL: userURL, Token: token, Agent: agent}
+func NewComradeLM(userURL string, token string, agent string, autoContext bool) *ComradeLM {
+	return &ComradeLM{URL: userURL, Token: token, Agent: agent, AutoContext: autoContext}
 }
 
 func (comrade *ComradeLM) AddMessage(message string, role string) {
