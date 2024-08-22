@@ -33,6 +33,7 @@ func NewPostRequest(URL string, jsonData []byte) (*http.Request, error) {
 	return req, nil
 }
 
+
 func GetComradeAIResponse(request Request, URL string) (ResponseData, error) {
 	jsonData, err := json.Marshal(request)
 	if err != nil {
@@ -58,6 +59,7 @@ func GetComradeAIResponse(request Request, URL string) (ResponseData, error) {
 	}
 
 	body, err := io.ReadAll(resp.Body)
+	
 	if err != nil {
 		return ResponseData{}, fmt.Errorf("error reading response body: %v", err)
 	}

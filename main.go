@@ -43,7 +43,7 @@ func TestLLM() {
 }
 
 func TestEmbedding() {
-	embedding := emb.NewComradeEmbedding(os.Getenv("COMRADE_URL"), os.Getenv("COMRADE_TOKEN"), "all-mpnet-base-v2")
+	embedding := emb.NewComradeEmbedding(os.Getenv("COMRADE_URL"), os.Getenv("COMRADE_TOKEN"), "Embeddings")
 	result, err := embedding.EmbedText("apple")
 	if err != nil {
 		fmt.Println(err)
