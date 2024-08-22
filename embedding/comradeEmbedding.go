@@ -79,7 +79,7 @@ func (comrade *ComradeEmbedding) EmbedText(message string) ([]float64, error) {
 			}
 		}
 
-		return nil, fmt.Errorf("model 'all-mpnet-base-v2' not found")
+		return nil, fmt.Errorf("model %s not found", comrade.Agent)
 	}
 
 	return nil, fmt.Errorf("error getting response: %s", result.Result)
