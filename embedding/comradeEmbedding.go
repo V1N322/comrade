@@ -36,7 +36,7 @@ func (comrade *ComradeEmbedding) EmbedText(message string) ([]float64, error) {
 	request := lib.Request{
 		ComradeAIToken: comrade.Token,
 		Text:           message,
-		AgentAddress:   comrade.Agent,
+		AgentAddress:   "Embeddings",
 		RequestAgentConfig: map[string]interface{}{},
 	}
 
@@ -70,7 +70,7 @@ func (comrade *ComradeEmbedding) EmbedText(message string) ([]float64, error) {
 
 		for _, model := range embeddingsResult {
 
-			if model.Model == "all-mpnet-base-v2" {
+			if model.Model == comrade.Agent {
 
 				var floatEmbeddings []float64
 				floatEmbeddings = append(floatEmbeddings, model.Embeddings...)
