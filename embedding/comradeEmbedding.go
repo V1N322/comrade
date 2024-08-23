@@ -3,7 +3,7 @@ package comradeembedding
 import (
 	"fmt"
 
-	lib "comrade/lib"
+	lib "github.com/V1N322/comrade/lib"
 
 	"encoding/json"
 )

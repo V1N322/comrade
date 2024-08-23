@@ -1,4 +1,4 @@
-module comrade
+module github.com/V1N322/comrade
 
 go 1.18
 
