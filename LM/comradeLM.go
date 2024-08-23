@@ -47,52 +47,46 @@ func (comrade *ComradeLM) LoadContext(context []map[string]interface{}) {
 }
 
 
-
-func (comrade *ComradeLM) SendMessage(message string) (string, error) {
-	
+func (comrade *ComradeLM) SendMessage(input string) (string, error) {
 	if comrade.AutoContext {
-		comrade.AddMessage(message, "user")
+		comrade.AddMessage(input, "user")
 	}
 
 	context := getStringContext(comrade.Context)
 
-	request := lib.Request{
+	req := lib.Request{
 		ComradeAIToken: comrade.Token,
 		Text:           context,
 		AgentAddress:   comrade.Agent,
-		RequestAgentConfig: map[string]interface{}{},
 	}
 
-
-	result, err := lib.GetComradeAIResponse(request, comrade.URL)
+	resp, err := lib.GetComradeAIResponse(req, comrade.URL)
 	if err != nil {
 		return "", fmt.Errorf("error getting response: %v", err)
 	}
 
-	
-	if result.Result == "success" {
-		content, ok := result.Content.(map[string]interface{})
-		if !ok {
-			return "", fmt.Errorf("invalid data structure")
-		}
-		lastTextOutput, ok := content["last_text_output"].(map[string]interface{})
-		if !ok {
-			return "", fmt.Errorf("invalid data structure")
-		}
-		responseText, ok := lastTextOutput["content"].(string)
-		if !ok {
-			return "", fmt.Errorf("invalid data structure")
-		}
-
-		if comrade.AutoContext {
-			comrade.AddMessage(responseText, "assistant")
-		}
-
-		return responseText, nil
-
-	} else {
-		return fmt.Sprintf("%v", result.Content), nil
+	if resp.Result != "success" {
+		return "", fmt.Errorf("invalid response: %v", resp.Result)
 	}
 
-	return "", nil
+	content, ok := resp.Content.(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("invalid data structure")
+	}
+
+	lastTextOutput, ok := content["last_text_output"].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("invalid data structure")
+	}
+
+	text, ok := lastTextOutput["content"].(string)
+	if !ok {
+		return "", fmt.Errorf("invalid data structure")
+	}
+
+	if comrade.AutoContext {
+		comrade.AddMessage(text, "assistant")
+	}
+
+	return text, nil
 }

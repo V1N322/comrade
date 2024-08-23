@@ -24,25 +24,25 @@ type ResponseData struct {
 	Content interface{} `json:"content"`
 }
 
-func NewPostRequest(URL string, jsonData []byte) (*http.Request, error) {
-	url := fmt.Sprintf("%s/get_agent_response/", URL)
-	req, err := http.NewRequest(httpClient.POST, url, bytes.NewBuffer(jsonData))
+func newPostRequest(url string, jsonData []byte) (*http.Request, error) {
+	reqURL := fmt.Sprintf("%s/get_agent_response/", url)
+	request, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewReader(jsonData))
 	if err != nil {
-		return nil, fmt.Errorf("error creating request: %v", err)
+		return nil, fmt.Errorf("error creating request: %w", err)
 	}
-	return req, nil
+	return request, nil
 }
 
 
-func GetComradeAIResponse(request Request, URL string) (ResponseData, error) {
-	jsonData, err := json.Marshal(request)
+func GetComradeAIResponse(request Request, url string) (ResponseData, error) {
+	data, err := json.Marshal(request)
 	if err != nil {
-		return ResponseData{}, fmt.Errorf("error creating json: %v", err)
+		return ResponseData{}, fmt.Errorf("error creating JSON: %w", err)
 	}
 
-	req, err := NewPostRequest(URL, jsonData)
+	req, err := newPostRequest(url, data)
 	if err != nil {
-		return ResponseData{}, fmt.Errorf("error creating request: %v", err)
+		return ResponseData{}, fmt.Errorf("error creating request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -50,7 +50,7 @@ func GetComradeAIResponse(request Request, URL string) (ResponseData, error) {
 	client := httpClient.GetHTTPClient()
 	resp, err := client.Do(req)
 	if err != nil {
-		return ResponseData{}, fmt.Errorf("error sending request: %v", err)
+		return ResponseData{}, fmt.Errorf("error sending request: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -59,13 +59,13 @@ func GetComradeAIResponse(request Request, URL string) (ResponseData, error) {
 	}
 
 	body, err := io.ReadAll(resp.Body)
-	
 	if err != nil {
-		return ResponseData{}, fmt.Errorf("error reading response body: %v", err)
+		return ResponseData{}, fmt.Errorf("error reading response body: %w", err)
 	}
+
 	var result ResponseData
 	if err := json.Unmarshal(body, &result); err != nil {
-		return ResponseData{}, fmt.Errorf("error decoding response: %v", err)
+		return ResponseData{}, fmt.Errorf("error decoding response: %w", err)
 	}
 
 	return result, nil

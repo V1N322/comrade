@@ -30,57 +30,38 @@ type ComradeAPIResponse struct {
 	Content map[string]interface{} `json:"content"`
 }
 
-func (comrade *ComradeEmbedding) EmbedText(message string) ([]float64, error) {
-	fmt.Printf("Sending message '%s' to Comrade Embedding\n", message)
-
-	request := lib.Request{
+func (comrade *ComradeEmbedding) EmbedText(input string) ([]float64, error) {
+	req := lib.Request{
 		ComradeAIToken: comrade.Token,
-		Text:           message,
+		Text:           input,
 		AgentAddress:   "Embeddings",
 		RequestAgentConfig: map[string]interface{}{},
 	}
 
-	result, err := lib.GetComradeAIResponse(request, comrade.URL)
+	resp, err := lib.GetComradeAIResponse(req, comrade.URL)
 	if err != nil {
-		return nil, fmt.Errorf("error getting response: %v", err)
+		return nil, fmt.Errorf("error getting response: %w", err)
 	}
 
-	if result.Result == "success" {
-		content, ok := result.Content.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid data structure")
-		}
-
-		contentList, ok := content["last_text_output"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid data structure")
-		}
-		
-		modelsList, ok := contentList["content"].(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid data structure")
-		}
-
-		var embeddingsResult []EmbeddingResult
-
-		err := json.Unmarshal([]byte(modelsList), &embeddingsResult)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing JSON: %v", err)
-		}
-
-		for _, model := range embeddingsResult {
-
-			if model.Model == comrade.Agent {
-
-				var floatEmbeddings []float64
-				floatEmbeddings = append(floatEmbeddings, model.Embeddings...)
-
-				return floatEmbeddings, nil
-			}
-		}
-
-		return nil, fmt.Errorf("model %s not found", comrade.Agent)
+	if resp.Result != "success" {
+		return nil, fmt.Errorf("error getting response: %s", resp.Result)
 	}
 
-	return nil, fmt.Errorf("error getting response: %s", result.Result)
+	var models []EmbeddingResult
+	modelsJSON, ok := resp.Content.(map[string]interface{})["last_text_output"].(map[string]interface{})["content"].(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid data structure")
+	}
+
+	if err := json.Unmarshal([]byte(modelsJSON), &models); err != nil {
+		return nil, fmt.Errorf("error parsing JSON: %w", err)
+	}
+
+	for _, model := range models {
+		if model.Model == comrade.Agent {
+			return model.Embeddings, nil
+		}
+	}
+
+	return nil, fmt.Errorf("model %s not found", comrade.Agent)
 }
